@@ -3,6 +3,7 @@ from flask import Flask
 from threading import Thread
 import asyncio
 import os
+import time
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
@@ -10,12 +11,12 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # ⚙️ إعدادات البوت
 # ==================================================
 
-BOT_TOKEN = "8805134453:AAFPTagbbngBRj3nKSMy7VD1Uw0Jmo2oabE"
-OPERATOR_GROUP_ID = -1003845654719
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8805134453:AAFPTagbbngBRj3nKSMy7VD1Uw0Jmo2oabE")
+OPERATOR_GROUP_ID = int(os.environ.get("OPERATOR_GROUP_ID", -1003845654719))
 DATABASE = "support.db"
 
 # ==================================================
-# 🗄️ دوال قاعدة البيانات (بدون تغيير)
+# 🗄️ دوال قاعدة البيانات
 # ==================================================
 
 def init_database():
@@ -66,7 +67,7 @@ def get_user_from_topic(topic_id):
     return result[0] if result else None
 
 # ==================================================
-# 👋 أوامر البوت (بدون تغيير)
+# 👋 أوامر البوت
 # ==================================================
 
 async def start(update: Update, context: CallbackContext):
@@ -130,7 +131,7 @@ async def handle_group_reply(update: Update, context: CallbackContext):
         print(f"❌ خطأ في إرسال الرد: {e}")
 
 # ==================================================
-# 🚀 تشغيل البوت في Thread منفصل
+# 🚀 تشغيل البوت
 # ==================================================
 
 async def run_bot():
@@ -143,7 +144,7 @@ async def run_bot():
     await app.run_polling()
 
 # ==================================================
-# 🌐 خادم Flask (لإبقاء البوت مستيقظاً)
+# 🌐 خادم Flask
 # ==================================================
 
 app_flask = Flask(__name__)
@@ -160,12 +161,26 @@ def run_flask():
     app_flask.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
 
 # ==================================================
-# ▶️ تشغيل الكل
+# ▶️ تشغيل الكل (نسخة معدلة)
 # ==================================================
 
 if __name__ == '__main__':
     # تشغيل Flask في Thread منفصل
-    flask_thread = Thread(target=run_flask)
+    flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
-    # تشغيل البوت
-    asyncio.run(run_bot())
+
+    # تشغيل البوت في Thread آخر مع حلقة أحداث خاصة به
+    def run_bot_thread():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(run_bot())
+
+    bot_thread = Thread(target=run_bot_thread, daemon=True)
+    bot_thread.start()
+
+    # إبقاء الخيط الرئيسي حياً
+    try:
+        while True:
+            time.sleep(60)
+    except KeyboardInterrupt:
+        print("🛑 إيقاف البوت...")
