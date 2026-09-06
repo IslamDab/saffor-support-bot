@@ -130,24 +130,20 @@ async def handle_group_reply(update: Update, context: CallbackContext):
         print(f"❌ خطأ في إرسال الرد: {e}")
 
 # ==================================================
-# 🚀 تشغيل البوت في خيط منفصل مع حلقة أحداث جديدة
+# 🚀 تشغيل البوت
 # ==================================================
 
-def run_bot():
+async def run_bot():
     init_database()
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_message))
     app.add_handler(MessageHandler(filters.TEXT & filters.Chat(OPERATOR_GROUP_ID), handle_group_reply))
-    
     print("🤖 البوت يعمل...")
-    loop.run_until_complete(app.run_polling(stop_signals=None))
+    await app.run_polling(stop_signals=None)
 
 # ==================================================
-# 🌐 خادم Flask (لإبقاء البوت مستيقظاً)
+# 🌐 خادم Flask
 # ==================================================
 
 app_flask = Flask(__name__)
@@ -172,14 +168,8 @@ if __name__ == '__main__':
     flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
-    # تشغيل البوت في خيط منفصل آخر
-    bot_thread = Thread(target=run_bot, daemon=True)
-    bot_thread.start()
-
-    # إبقاء الخيط الرئيسي حياً
+    # تشغيل البوت في الخيط الرئيسي
     try:
-        while True:
-            import time
-            time.sleep(60)
+        asyncio.run(run_bot())
     except KeyboardInterrupt:
         print("🛑 إيقاف البوت...")
