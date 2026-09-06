@@ -140,7 +140,7 @@ async def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_message))
     app.add_handler(MessageHandler(filters.TEXT & filters.Chat(OPERATOR_GROUP_ID), handle_group_reply))
     print("🤖 البوت يعمل...")
-    await app.run_polling(stop_signals=None)
+    await app.run_polling()
 
 # ==================================================
 # 🌐 خادم Flask
