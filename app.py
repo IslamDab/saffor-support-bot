@@ -11,7 +11,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # ==================================================
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8805134453:AAFPTagbbngBRj3nKSMy7VD1Uw0Jmo2oabE")
-OPERATOR_GROUP_ID = int(os.environ.get("OPERATOR_GROUP_ID", -1003845654719))
+OPERATOR_GROUP_ID = -1003845654719
 DATABASE = "support.db"
 
 # ==================================================
